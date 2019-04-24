@@ -40,8 +40,12 @@ namespace Yahtzee
         private int uScoreCardCount = 0;
 
         // you'll need an instance variable for the user's scorecard - an array of 13 ints
+        public int[] userScorecard = new int[12];
         // as well as an instance variable for 0 to 5 dice as the user rolls - array or list<int>?
-        // as well as an instance variable for 0 to 5 dice that the user wants to keep - array or list<int>? 
+        public List<int> userRoll = new List<int>(5);
+        // as well as an instance variable for 0 to 5 dice that the user wants to keep - array or list<int>?
+        public List<int> userKeep = new List<int>(5);
+
 
         // this is the list of methods that I used
 
@@ -49,12 +53,23 @@ namespace Yahtzee
         // This method rolls numDie and puts the results in the list
         public void Roll(int numDie, List<int> dice)
         {
+            Random randomNumberGenerator = new Random();
+            dice.Capacity = numDie;
+            for(int i = 0; i <= numDie; i++)
+            {
+                int roll = randomNumberGenerator.Next(1, 6);
+                dice[i] = roll;
+            }
         }
 
         // This method moves all of the rolled dice to the keep dice before scoring.  All of the dice that
         // are being scored have to be in the same list 
         public void MoveRollDiceToKeep(List<int> roll, List<int> keep)
         {
+            for(int i = 0; i <= roll.Count; i++)
+            {
+                keep.Add(roll[i]);
+            }
         }
 
         #region Scoring Methods
