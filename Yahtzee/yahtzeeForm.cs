@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
 
 // Example Yahtzee website if you've never played
 // https://cardgames.io/yahtzee/
@@ -39,17 +40,20 @@ namespace Yahtzee
         private int rollCount = 0;
         private int uScoreCardCount = 0;
 
+        private bool userTurn = true;
+
+        private int computerRollCount = 0;
+        private int cScoreCardCount = 0;
+
         // you'll need an instance variable for the user's scorecard - an array of 13 ints
         private int[] userScorecard = new int[13];
+        private int[] computerScorecard = new int[13];
 
         // as well as an instance variable for 0 to 5 dice as the user rolls - array or list<int>?
         private List<int> roll = new List<int>();
 
         // as well as an instance variable for 0 to 5 dice that the user wants to keep - array or list<int>?
         private List<int> keep = new List<int>();
-
-        // rollPosition is where the dice display in the roll area
-        private int[] rollPosition = new int[] { -1, -1, -1, -1, -1 };
 
         // this is the list of methods that I used
 
@@ -142,32 +146,86 @@ namespace Yahtzee
          */
         private int ScoreOnes(int[] counts)
         {
-            return counts[ONES] * 1;
+            int score = counts[ONES] * 1;
+            if (userTurn)
+            {
+                userScorecard[ONES] = score;
+            }
+            else
+            {
+                computerScorecard[ONES] = score;
+            }
+            return score;
         }
 
         private int ScoreTwos(int[] counts)
         {
-            return counts[TWOS] * 2;
+            int score = counts[TWOS] * 2;
+            if (userTurn)
+            {
+                userScorecard[TWOS] = score;
+            }
+            else
+            {
+                computerScorecard[TWOS] = score;
+            }
+            return score;
         }
 
         private int ScoreThrees(int[] counts)
         {
-            return counts[THREES] * 3;
+            int score = counts[THREES] * 3;
+            if (userTurn)
+            {
+                userScorecard[THREES] = score;
+            }
+            else
+            {
+                computerScorecard[THREES] = score;
+            }
+            return score;
         }
 
         private int ScoreFours(int[] counts)
         {
-            return counts[FOURS] * 4;
+            int score = counts[FOURS] * 4;
+            if (userTurn)
+            {
+                userScorecard[FOURS] = score;
+            }
+            else
+            {
+                computerScorecard[FOURS] = score;
+            }
+            return score;
         }
 
         private int ScoreFives(int[] counts)
         {
-            return counts[FIVES] * 5;
+            int score = counts[FIVES] * 5;
+            if (userTurn)
+            {
+                userScorecard[FIVES] = score;
+            }
+            else
+            {
+                computerScorecard[FIVES] = score;
+            }
+            return score;
         }
 
         private int ScoreSixes(int[] counts)
         {
-            return counts[SIXES] * 6;
+            int score = counts[SIXES] * 6;
+            if (userTurn)
+            {
+                userScorecard[SIXES] = score;
+            }
+            else
+            {
+                computerScorecard[SIXES] = score;
+            }
+            return score;
         }
 
         /* This method can be used to determine if you have 3 of a kind (or 4? or  5?).  The output parameter
@@ -208,6 +266,10 @@ namespace Yahtzee
             int value;
             if (HasCount(3, counts, out value))
             {
+                if (userTurn)
+                    userScorecard[THREE_OF_A_KIND] = Sum(counts);
+                else
+                    computerScorecard[THREE_OF_A_KIND] = Sum(counts);
                 return Sum(counts);
             }
             return 0;
@@ -218,6 +280,10 @@ namespace Yahtzee
             int value;
             if (HasCount(4, counts, out value))
             {
+                if (userTurn)
+                    userScorecard[FOUR_OF_A_KIND] = Sum(counts);
+                else
+                    computerScorecard[FOUR_OF_A_KIND] = Sum(counts);
                 return Sum(counts);
             }
             return 0;
@@ -227,6 +293,10 @@ namespace Yahtzee
         {
             int value;
             if (HasCount(5, counts, out value)) {
+                if (userTurn)
+                    userScorecard[YAHTZEE] = 50;
+                else
+                    computerScorecard[YAHTZEE] = 50;
                 return 50;
             }
             return 0;
@@ -241,6 +311,10 @@ namespace Yahtzee
             int value2;
             if (HasCount(2, counts, out value1) && HasCount(3, counts, out value2))
             {
+                if (userTurn)
+                    userScorecard[FULL_HOUSE] = 25;
+                else
+                    computerScorecard[FULL_HOUSE] = 25;
                 return 25;
             }
             return 0;
@@ -248,28 +322,48 @@ namespace Yahtzee
 
         private int ScoreSmallStraight(int[] counts)
         {
+            //check for all three small straights (1234 or 2345 or 3456)
             for (int i = 0; i < 3; i++)
             {
                 if (counts[i] != 0 && counts[i + 1] != 0 && counts[i + 2] != 0 && counts[i + 3] != 0)
+                {
+                    //if there is a small straight, score is 30
+                    if (userTurn)
+                        userScorecard[SMALL_STRAIGHT] = 30;
+                    else
+                        computerScorecard[SMALL_STRAIGHT] = 30;
                     return 30;
+                }
             }
-
+            //if there is no small straight, score is 0
             return 0;
         }
 
         private int ScoreLargeStraight(int[] counts)
         {
+            //check for both large straights (12345 or 23456)
             for (int i = 0; i < 2; i++)
             {
                 if (counts[i] != 0 && counts[i + 1] != 0 && counts[i + 2] != 0 && counts[i + 3] != 0 && counts[i + 4] != 0)
+                {
+                    //if there is a large straight, score is 40
+                    if (userTurn)
+                        userScorecard[LARGE_STRAIGHT] = 40;
+                    else
+                        computerScorecard[LARGE_STRAIGHT] = 40;
                     return 40;
+                }
             }
-
+            //if there is no large straight, score is 0
             return 0;
         }
 
         private int ScoreChance(int[] counts)
         {
+            if (userTurn)
+                userScorecard[CHANCE] = Sum(counts);
+            else
+                computerScorecard[CHANCE] = Sum(counts);
             return Sum(counts);
         }
 
@@ -317,16 +411,76 @@ namespace Yahtzee
         // a 0 or a positive number could be an actual score
         private void ResetScoreCard(int[] scoreCard, int scoreCardCount)
         {
+            //itterate through the scorecard and fill each spot with -1 (no value)
+            for (int i = 0; i < scoreCard.Length; i++)
+            {
+                scoreCard[i] = -1;
+                computerScorecard[i] = -1;
+            }
+
+            scoreCardCount = 0;
+            cScoreCardCount = 0;
+
+            //populate the keep list with -1 (no value)
+            for (int i = 0; i < 5; i++)
+            {
+                keep.Add(-1);
+            }
         }
 
         // this set has to do with user's scorecard UI
         private void ResetUserUIScoreCard()
         {
+            //itterate through user0 - user12 and reset them
+            for (int i = 0; i < 13; i++)
+            {
+                Label scoreCardElement = (Label)this.scoreCardPanel.Controls["user" + i];
+                scoreCardElement.Text = "";
+                scoreCardElement.Enabled = true;
+            }
+
+            //reset userSum, userTotalScore, and userBonus
+            userSum.Text = "";
+            userSum.Enabled = true;
+            userTotalScore.Text = "";
+            userTotalScore.Enabled = true;
+            userBonus.Text = "";
+            userBonus.Enabled = true;
         }
 
         // this method adds the subtotals as well as the bonus points when the user is done playing
         public void UpdateUserUIScoreCard()
         {
+            int totalScore = 0;
+
+            //add up the top scores (ONES - SIXES)
+            for (int i = 0; i < 6; i++)
+            {
+                totalScore += userScorecard[i];
+            }
+
+            //if the total top score is >= 63, give a bonus of 35
+            if (totalScore >= 63)
+            {
+                userBonus.Text = "35";
+                totalScore += 35;
+            }
+            else
+            {
+                //otherwise the bonus is 0
+                userBonus.Text = "0";
+            }
+
+            //update the sum text
+            userSum.Text = totalScore.ToString();
+
+            //add all the bottom scores to totalScore
+            for (int i = 6; i < 13; i++)
+            {
+                totalScore += userScorecard[i];
+            }
+
+            userTotalScore.Text = totalScore.ToString();
         }
 
         /* When I move a die from roll to keep, I put a -1 in the spot that the die used to be in.
@@ -455,15 +609,12 @@ namespace Yahtzee
         #region Event Handlers
         private void Form1_Load(object sender, EventArgs e)
         {
-            uScoreCardCount = 0;
+            ResetScoreCard(userScorecard, uScoreCardCount);
+            ResetUserUIScoreCard();
             HideAllRollDice();
             HideAllKeepDice();
             HideAllComputerKeepDice();
 
-            for (int i = 0; i < 5; i++)
-            {
-                keep.Add(-1);
-            }
              /* reset the user's scorecard
              * Hide the roll dice
              * Hide the keep dice
@@ -548,9 +699,12 @@ namespace Yahtzee
             // when it's the end of the game
             if(uScoreCardCount == 13)
             {
-               
-
+                UpdateUserUIScoreCard();
+                rollButton.Enabled = false;
             }
+
+            //userTurn = false;
+            //ComputerPlay();
             // update the sum(s) and bonus parts of the score card
             // enable/disable buttons
             // display a message box?
@@ -573,6 +727,7 @@ namespace Yahtzee
             // it may be in the middle somewhere
 
             // clear the die in the roll data structure
+            keep[availableSpot] = roll[clickedDie];
             roll[clickedDie] = -1;
             ShowKeepDie(availableSpot);
             HideRollDie(clickedDie);
@@ -582,11 +737,20 @@ namespace Yahtzee
         private void keep_DoubleClick(object sender, EventArgs e)
         {
             // figure out which die you clicked on
+            PictureBox die = (PictureBox)sender;
+            int clickedDie = int.Parse(die.Name.Substring(4, 1));
 
             // figure out where in the set of roll picture boxes there's a "space"
+            int availableSpot = GetFirstAvailablePB(roll);
+
             // move the roll die value from this die to the roll data structure in the "right place"
             // sometimes that will be at the end but if the user is moving dice back and forth
             // it may be in the middle somewhere
+            roll[availableSpot] = keep[clickedDie];
+            keep[clickedDie] = -1;
+            ShowRollDie(availableSpot);
+            HideKeepDie(clickedDie);
+
 
             // clear the die in the keep data structure
             // hide the picture box
@@ -594,8 +758,86 @@ namespace Yahtzee
 
         private void newGameButton_Click(object sender, EventArgs e)
         {
+            ResetScoreCard(userScorecard, uScoreCardCount);
+            ResetUserUIScoreCard();
+            HideAllRollDice();
+            HideAllKeepDice();
+            HideAllComputerKeepDice();
+            rollCount = 0;
+            rollButton.Enabled = true;
+        }
+        #endregion
+
+        #region Computer AI
+        private void ComputerPlay()
+        {
+            ComputerRoll();
+
+            Thread.Sleep(2000);
+
+            ComputerRoll();
+
+            Thread.Sleep(2000);
+
+            ComputerRoll();
+
+            Thread.Sleep(2000);
+
+            //while (computerRollCount < 4)
+            //{
+            //    ComputerRoll();
+
+            //    //add time here
+            //    Thread.Sleep(1000);
+
+            //    if (computerRollCount == 3)
+            //    {
+            //        ComputerScore();
+            //        userTurn = true;
+
+            //        //increase computer roll count to break the while loop
+            //        computerRollCount++;
+            //    }
+            //    else if (computerRollCount < 3)
+            //    {
+            //        ComputerSelectDiceToKeep();
+            //    }
+            //}
 
         }
+
+        private void ComputerRoll()
+        {
+            //HideAllRollDice();
+
+            // roll the right number of dice
+            int numDiceToRoll = 5;
+            foreach (int value in keep)
+            {
+                if (value != -1)
+                    numDiceToRoll--;
+            }
+            Roll(numDiceToRoll, roll);
+
+            // show the roll picture boxes
+            ShowAllRollDie();
+
+            // increment the number of rolls
+            computerRollCount++;
+        }
+
+        private void ComputerSelectDiceToKeep()
+        {
+
+        }
+
+        private void ComputerScore()
+        {
+
+        }
+
+
+
         #endregion
     }
 }
