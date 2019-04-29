@@ -40,25 +40,55 @@ namespace Yahtzee
         private int uScoreCardCount = 0;
 
         // you'll need an instance variable for the user's scorecard - an array of 13 ints
-        public int[] userScorecard = new int[12];
-        // as well as an instance variable for 0 to 5 dice as the user rolls - array or list<int>?
-        public List<int> userRoll = new List<int>(5);
-        // as well as an instance variable for 0 to 5 dice that the user wants to keep - array or list<int>?
-        public List<int> userKeep = new List<int>(5);
+        private int[] userScorecard = new int[13];
 
+        // as well as an instance variable for 0 to 5 dice as the user rolls - array or list<int>?
+        private List<int> roll = new List<int>();
+
+        // as well as an instance variable for 0 to 5 dice that the user wants to keep - array or list<int>?
+        private List<int> keep = new List<int>();
+
+        // rollPosition is where the dice display in the roll area
+        private int[] rollPosition = new int[] { -1, -1, -1, -1, -1 };
 
         // this is the list of methods that I used
 
         // START WITH THESE 2
         // This method rolls numDie and puts the results in the list
-        public void Roll(int numDie, List<int> dice)
+        public void Roll(int numDie, List<int> roll)
         {
+            //create random number generator
             Random randomNumberGenerator = new Random();
-            dice.Capacity = numDie;
-            for(int i = 0; i <= numDie; i++)
+            
+            //clear the roll list and set capacity to 5
+            roll.Clear();
+            roll.Capacity = 5;
+            
+            //loop through the roll list and set every element to -1 (no element)
+            for(int i = 0; i < 5; i++)
             {
-                int roll = randomNumberGenerator.Next(1, 6);
-                dice[i] = roll;
+                roll.Add(-1);
+            }
+
+            //for every die that needs rolled
+            for (int i = 0; i < numDie; i++)
+            {
+                int randomPosition;
+
+                //set a random position for the picture box (0-4)
+                do
+                {
+                    randomPosition = randomNumberGenerator.Next(0, 5);
+                } while (roll[randomPosition] != -1); //if the position is already filled, pick a new random position
+
+                //after finding an empty position, roll the die and put it in that position
+                roll[randomPosition] = randomNumberGenerator.Next(1, 7);
+                //roll.Add(i + 1);
+                //roll.Add(5);
+                //if (i < 3)
+                //    roll.Add(5);
+                //else
+                //    roll.Add(3);
             }
         }
 
@@ -66,9 +96,11 @@ namespace Yahtzee
         // are being scored have to be in the same list 
         public void MoveRollDiceToKeep(List<int> roll, List<int> keep)
         {
-            for(int i = 0; i <= roll.Count; i++)
+            int rolledDice = roll.Count;
+            for(int i = 0; i < rolledDice; i++)
             {
-                keep.Add(roll[i]);
+                keep.Add(roll[0]);
+                roll.RemoveAt(0);
             }
         }
 
@@ -78,7 +110,14 @@ namespace Yahtzee
          */
         private int Count(int value, List<int> dice)
         {
-            return 0;
+            int count = 0;
+            foreach (int dieValue in dice)
+            {
+                if (value == dieValue)
+                    count++;
+            }
+            //take keep list, use contains??
+            return count;
         }
 
         /* This method counts how many 1s, 2s, 3s ... 6s there are in a list of ints that represent a set of dice
@@ -90,54 +129,61 @@ namespace Yahtzee
          */
         private int[] GetCounts(List<int> dice)
         {
-            return null;
+            int[] counts = new int[6];
+            for(int i = ONES; i <= SIXES; i++)
+            {
+                int value = i + 1;
+                counts[i] = Count(value, dice);
+            }
+            return counts;
         }
 
         /* Each of these methods takes the array of counts as a parameter and returns the score for a dice value.
          */
         private int ScoreOnes(int[] counts)
         {
-            return 0;
+            return counts[ONES] * 1;
         }
 
         private int ScoreTwos(int[] counts)
         {
-            return 0;
+            return counts[TWOS] * 2;
         }
 
         private int ScoreThrees(int[] counts)
         {
-            return 0;
+            return counts[THREES] * 3;
         }
 
         private int ScoreFours(int[] counts)
         {
-            return 0;
+            return counts[FOURS] * 4;
         }
 
         private int ScoreFives(int[] counts)
         {
-            return 0;
+            return counts[FIVES] * 5;
         }
 
         private int ScoreSixes(int[] counts)
         {
-            return 0;
+            return counts[SIXES] * 6;
         }
 
         /* This method can be used to determine if you have 3 of a kind (or 4? or  5?).  The output parameter
          * whichValue tells you which dice value is 3 of a kind.
-         */ 
+         */
         private bool HasCount(int howMany, int[] counts, out int whichValue)
         {
             int index = ONES;
             foreach (int count in counts)
             {
-                if (howMany == count)
+                if (howMany <= count)
                 {
                     whichValue = index;
                     return true;
                 }
+                index++;
             }
             whichValue = NONE;
             return false;
@@ -148,23 +194,41 @@ namespace Yahtzee
          */ 
         private int Sum(int[] counts)
         {
-            return 0;
+            int sum = 0;
+            for (int i = 0; i < counts.Length; i++) {
+                sum += (counts[i] * (i + 1));
+            }
+            return sum;
         }
 
         /* This method calls HasCount(3...) and if there are 3 of a kind calls Sum to calculate the score.
          */ 
         private int ScoreThreeOfAKind(int[] counts)
         {
+            int value;
+            if (HasCount(3, counts, out value))
+            {
+                return Sum(counts);
+            }
             return 0;
         }
 
         private int ScoreFourOfAKind(int[] counts)
         {
+            int value;
+            if (HasCount(4, counts, out value))
+            {
+                return Sum(counts);
+            }
             return 0;
         }
 
         private int ScoreYahtzee(int[] counts)
         {
+            int value;
+            if (HasCount(5, counts, out value)) {
+                return 50;
+            }
             return 0;
         }
 
@@ -173,22 +237,40 @@ namespace Yahtzee
          */ 
         private int ScoreFullHouse(int[] counts)
         {
+            int value1;
+            int value2;
+            if (HasCount(2, counts, out value1) && HasCount(3, counts, out value2))
+            {
+                return 25;
+            }
             return 0;
         }
 
         private int ScoreSmallStraight(int[] counts)
         {
+            for (int i = 0; i < 3; i++)
+            {
+                if (counts[i] != 0 && counts[i + 1] != 0 && counts[i + 2] != 0 && counts[i + 3] != 0)
+                    return 30;
+            }
+
             return 0;
         }
 
         private int ScoreLargeStraight(int[] counts)
-        {   
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                if (counts[i] != 0 && counts[i + 1] != 0 && counts[i + 2] != 0 && counts[i + 3] != 0 && counts[i + 4] != 0)
+                    return 40;
+            }
+
             return 0;
         }
 
         private int ScoreChance(int[] counts)
         {
-            return 0;
+            return Sum(counts);
         }
 
         /* This method makes it "easy" to call the "right" scoring method when you click on an element
@@ -281,6 +363,7 @@ namespace Yahtzee
         {
             GetKeepDie(i).Visible = false;
         }
+
         public void HideAllKeepDice()
         {
             for (int i = 0; i < 5; i++)
@@ -290,13 +373,16 @@ namespace Yahtzee
         public void ShowKeepDie(int i)
         {
             PictureBox die = GetKeepDie(i);
-            //die.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\..\\..\\Dice\\die" + keep[i] + ".png");
+            die.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\..\\..\\Dice\\die" + keep[i] + ".png");
             die.Visible = true;
         }
 
         public void ShowAllKeepDie()
         {
-
+            for (int i = 0; i < 5; i++)
+            {
+                ShowKeepDie(i);
+            }
         }
 
         private PictureBox GetComputerKeepDie(int i)
@@ -319,12 +405,16 @@ namespace Yahtzee
         public void ShowComputerKeepDie(int i)
         {
             PictureBox die = GetComputerKeepDie(i);
-            //die.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\..\\..\\Dice\\die" + keep[i] + ".png");
+            die.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\..\\..\\Dice\\die" + keep[i] + ".png");
             die.Visible = true;
         }
 
         public void ShowAllComputerKeepDie()
         {
+            for (int i = 0; i < 5; i++)
+            {
+                ShowComputerKeepDie(i);
+            }
         }
 
         private PictureBox GetRollDie(int i)
@@ -347,19 +437,33 @@ namespace Yahtzee
         public void ShowRollDie(int i)
         {
             PictureBox die = GetRollDie(i);
-            //die.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\..\\..\\Dice\\die" + roll[i] + ".png");
+            die.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\..\\..\\Dice\\die" + roll[i] + ".png");
             die.Visible = true;
         }
 
         public void ShowAllRollDie()
-        {
-
+        { 
+            for (int i = 0; i < 5; i++)
+            {
+                if (roll[i] == -1)
+                    continue;
+                ShowRollDie(i);
+            }
         }
         #endregion
 
         #region Event Handlers
         private void Form1_Load(object sender, EventArgs e)
         {
+            uScoreCardCount = 0;
+            HideAllRollDice();
+            HideAllKeepDice();
+            HideAllComputerKeepDice();
+
+            for (int i = 0; i < 5; i++)
+            {
+                keep.Add(-1);
+            }
              /* reset the user's scorecard
              * Hide the roll dice
              * Hide the keep dice
@@ -377,31 +481,76 @@ namespace Yahtzee
 
             // START HERE
             // clear the roll data structure
-            // hide all of thhe roll picture boxes
+            //roll.Clear();
+            
+            // hide all of the roll picture boxes
+            HideAllRollDice();
 
             // roll the right number of dice
+            int numDiceToRoll = 5;
+            foreach(int value in keep)
+            {
+                if (value != -1)
+                    numDiceToRoll--;
+            }
+            Roll(numDiceToRoll, roll);
+
             // show the roll picture boxes
+            ShowAllRollDie();
 
             // increment the number of rolls
+            rollCount++;
+
             // disable the button if you've rolled 3 times
+            if (rollCount >= 3)
+                rollButton.Enabled = false;
         }
 
         private void userScorecard_DoubleClick(object sender, EventArgs e)
         {
             // move any rolled die into the keep dice
+            MoveRollDiceToKeep(roll, keep);
+            
             // hide picture boxes for both roll and keep
-
+            HideAllKeepDice();
+            HideAllRollDice();
+            
             // determine which element in the score card was clicked
+            Label clickedElement = (Label)sender;
+            int elementNumber = int.Parse(clickedElement.Name.Substring(4));
+            
             // score that element
+            int score = Score(elementNumber, keep);
+            
             // put the score in the scorecard and the UI
+            userScorecard[elementNumber] = score;
+            clickedElement.Text = score.ToString();
+            
             // disable this element in the score card
+            clickedElement.Enabled = false;
 
             // clear the keep dice
+            keep.Clear();
+            for (int i = 0; i < 5; i++)
+            {
+                keep.Add(-1);
+            }
+
             // reset the roll count
+            rollCount = 0;
+
             // increment the number of elements in the score card that are full
+            uScoreCardCount++;
+
             // enable/disable buttons
+            rollButton.Enabled = true;
 
             // when it's the end of the game
+            if(uScoreCardCount == 13)
+            {
+               
+
+            }
             // update the sum(s) and bonus parts of the score card
             // enable/disable buttons
             // display a message box?
@@ -410,13 +559,23 @@ namespace Yahtzee
         private void roll_DoubleClick(object sender, EventArgs e)
         {
             // figure out which die you clicked on
+            PictureBox die = (PictureBox)sender;
+            int clickedDie = int.Parse(die.Name.Substring(4, 1));
 
             // figure out where in the set of keep picture boxes there's a "space"
+            int availableSpot = GetFirstAvailablePB(keep);
+
             // move the roll die value from this die to the keep data structure in the "right place"
+            keep[availableSpot] = roll[clickedDie];
+
+
             // sometimes that will be at the end but if the user is moving dice back and forth
             // it may be in the middle somewhere
 
             // clear the die in the roll data structure
+            roll[clickedDie] = -1;
+            ShowKeepDie(availableSpot);
+            HideRollDie(clickedDie);
             // hide the picture box
         }
 
